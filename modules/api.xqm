@@ -460,7 +460,7 @@ function api:corpus-entities($corpusname) {
         <http:response status="404"/>
       </rest:response>
     else
-      array {entities:corpus($corpusname)}
+      entities:corpus($corpusname)
 };
 
 (:~
