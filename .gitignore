@@ -3,3 +3,4 @@ build/
 .existdb.json
 expath-pkg.xml
 ecocor-latest.xar
+.DS_Store

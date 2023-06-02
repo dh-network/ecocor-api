@@ -1,36 +1,341 @@
-openapi: "3.0.0"
-
 info:
-  version: 0.0.1
-  title: EcoCor API
   contact:
-    email: ""
-  termsOfService: "https://ecocor.org"
+    email: trilcke@uni-potsdam.de
+  termsOfService: https://ecocor.org
   license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: EcoCor API Draft
+  version: 0.0.0
 servers:
-  - url: https://ecocor.org/api
-
+- description: Production
+  url: https://ecocor.org/api
+tags:
+- name: meta
+  description: About the service
+- name: corpus
+  description: About a corpus
+- name: text
+  description: About a text
+- name: entities
+  description: About entities
 paths:
   /info:
     get:
       summary: API info
-      description: >-
-        Shows version numbers of the ecocor-api app and the underlying
+      description: Shows version numbers of the dracor-api app and the underlying
         eXist-db.
       operationId: api-info
-      tags: [public]
+      tags:
+      - meta
       responses:
         '200':
           description: Returns JSON object
           content:
             application/json:
-              example:
-                {
-                  "existdb": "6.0.1",
-                  "name": "EcoCor",
-                  "status": "beta",
-                  "version": "1.0.0"
-                }
+              schema:
+                $ref: '#/components/schemas/Info'
+  /corpora:
+    get:
+      summary: List available corpora
+      operationId: get-corpora
+      tags:
+      - corpus
+      parameters:
+      - name: include
+        in: query
+        description: Include metrics for each corpus
+        required: false
+        schema:
+          type: string
+          enum:
+          - metrics
+      responses:
+        '200':
+          description: Returns list of available corpora
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Corpus'
+  /corpora/{corpus_id}:
+    get:
+      summary: Metadata of a single corpus
+      operationId: get-corpus
+      tags:
+      - corpus
+      parameters:
+      - name: corpus_id
+        in: path
+        required: true
+        description: 'Short name of the corpus as provided in the `name` property
+          of the result objects from the [/corpora](#/public/list-corpora) endpoint
+
+          '
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns corpus object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Corpus'
+  /corpora/{corpus_id}/texts:
+    get:
+      summary: List corpus content
+      description: Lists all texts available in the corpus including the id, title,
+        author(s) and other meta data.
+      operationId: get-corpus-texts
+      tags:
+      - corpus
+      parameters:
+      - name: corpus_id
+        in: path
+        required: true
+        description: 'Short name of the corpus as provided in the `name` property
+          of the result objects from the [/corpora](#/public/list-corpora) endpoint
+
+          '
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns a list of metadata for all plays
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Text'
+        '404':
+          description: Corpus not found
+  /entities:
+    get:
+      summary: Get entities
+      description: Return entities by type or by ID for all corpora, a single corpus
+        or a single text.
+      operationId: get-entities
+      tags:
+      - entities
+      parameters:
+      - name: id
+        description: Get a single entity by its Wikidata identifier.
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: type
+        description: Filter by type of entity.
+        in: query
+        required: false
+        example:
+        - animal
+        - plant
+        schema:
+          type: string
+      - name: corpus
+        description: Get entities of a single corpus.
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: text
+        description: Get entities of a single text.
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+  /corpora/{corpus_id}/texts/{text_id}:
+    get:
+      summary: Get a single text
+      description: Get a text as TEI-XML or metadata about a text in JSON.
+      operationId: get-text
+      tags:
+      - text
+      parameters:
+      - name: corpus_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: text_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns an object with text meta data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Text'
+            application/tei+xml:
+              schema:
+                type: string
+openapi: 3.0.3
+components:
+  schemas:
+    Info:
+      type: object
+      properties:
+        existdb:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        status:
+          type: string
+    CorpusMetrics:
+      type: object
+      properties:
+        updated:
+          type: string
+        numOfTexts:
+          type: integer
+        numOfEntities:
+          type: integer
+        numOfEntityTypes:
+          type: integer
+        numOfParagraphs:
+          type: integer
+    Corpus:
+      type: object
+      properties:
+        licenceUrl:
+          type: string
+          format: url
+        textsUrl:
+          type: string
+          format: url
+        entitiesUrl:
+          type: string
+          format: url
+        title:
+          type: string
+        metrics:
+          $ref: '#/components/schemas/CorpusMetrics'
+        id:
+          type: string
+        licence:
+          type: string
+        repository:
+          type: string
+          format: url
+        description:
+          type: string
+    PrintSource:
+      type: object
+      properties:
+        placePublished:
+          type: string
+        title:
+          type: string
+        publisher:
+          type: string
+        yearPublished:
+          type: integer
+    ExternalReferenceResourceId:
+      type: object
+      properties:
+        ref:
+          type: string
+        type:
+          type: string
+    Author:
+      type: object
+      properties:
+        name:
+          type: string
+        gender:
+          type: string
+        refs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalReferenceResourceId'
+    DigitalSource:
+      type: object
+      properties:
+        url:
+          type: string
+          format: url
+          nullable: true
+        name:
+          type: string
+          nullable: true
+    Dates:
+      type: object
+      properties:
+        yearWritten:
+          type: string
+          nullable: true
+        yearNormalized:
+          type: integer
+          nullable: true
+        yearPrinted:
+          type: string
+          nullable: true
+    TextMetrics:
+      type: object
+      properties:
+        numOfWordTokens:
+          type: integer
+        numOfSegments:
+          type: integer
+        numOfEntities:
+          type: integer
+        numOfEntityTypes:
+          type: integer
+        numOfParagraphs:
+          type: integer
+    Text:
+      type: object
+      properties:
+        printedSource:
+          $ref: '#/components/schemas/PrintSource'
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+        entitiesUrl:
+          type: string
+          format: url
+        title:
+          type: string
+        digitalSource:
+          $ref: '#/components/schemas/DigitalSource'
+        dates:
+          $ref: '#/components/schemas/Dates'
+        id:
+          type: string
+        metrics:
+          $ref: '#/components/schemas/TextMetrics'
+        corpusUrl:
+          type: string
+          format: url
+        refs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalReferenceResourceId'
+    Entity:
+      type: object
+      properties:
+        uri:
+          type: string
+          format: url
+        id:
+          type: string
+        name:
+          type: string
