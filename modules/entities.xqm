@@ -13,24 +13,31 @@ declare namespace trigger = "http://exist-db.org/xquery/trigger";
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace tei = "http://www.tei-c.org/ns/1.0";
 
-
 (:~
  : Create segments input for extractor service
  :
  : @param $tei TEI document
 :)
 declare function entities:segment($tei as element(tei:TEI)) as map() {
-  map {
-    "language": normalize-space($tei/@xml:lang),
-    "segments": array {
-      (: FIXME: remove limit :)
-      for $p in ectei:get-text-paras($tei)
-      return map {
-        "segment_id": normalize-space($p/@xml:id),
-        "text": normalize-space($p)
+  map:merge((
+    map {
+      "language": normalize-space($tei/@xml:lang),
+      "segments": array {
+        (: FIXME: remove limit :)
+        for $p in ectei:get-text-paras($tei)
+        return map {
+          "segment_id": normalize-space($p/@xml:id),
+          "text": normalize-space($p)
+        }
       }
-    }
-  }
+    },
+    (: FIXME: extractor should choose reasonable list depending on language :)
+    if ($tei/@xml:lang != "de") then map {
+      "entity_list" : map {
+        "url": "https://raw.githubusercontent.com/dh-network/ecocor-extractor/main/word_list/english/animal_plant-en.json"
+      }
+    } else ()
+  ))
 };
 
 (:~
@@ -91,7 +98,7 @@ declare function entities:to-xml($entities as map()) {
       for $ent in $entities?entity_list?* return
       <entity>
         <name>{$ent?name}</name>
-        <wikidata>{$ent?wikidata_ids}</wikidata>
+        <wikidata>{$ent?wikidata_id}</wikidata>
         <category>{$ent?category}</category>
         <segments>
         {
