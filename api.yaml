@@ -130,9 +130,11 @@ paths:
         description: Filter by type of entity.
         in: query
         required: false
-        example:
-        - animal
-        - plant
+        examples:
+          animal:
+            value: animal
+          plant:
+            value: plant
         schema:
           type: string
       - name: corpus
@@ -190,62 +192,68 @@ components:
     Info:
       type: object
       properties:
-        existdb:
+        status:
           type: string
         name:
           type: string
-        version:
+        existdb:
           type: string
-        status:
+        version:
           type: string
     CorpusMetrics:
       type: object
       properties:
+        biodiversityIndex:
+          type: number
+        numOfParagraphs:
+          type: integer
+        numOfEntityTypes:
+          type: integer
         updated:
           type: string
         numOfTexts:
           type: integer
         numOfEntities:
           type: integer
-        numOfEntityTypes:
-          type: integer
-        numOfParagraphs:
-          type: integer
     Corpus:
       type: object
       properties:
-        licenceUrl:
+        metrics:
+          $ref: '#/components/schemas/CorpusMetrics'
+        id:
           type: string
-          format: url
         textsUrl:
           type: string
           format: url
         entitiesUrl:
           type: string
           format: url
-        title:
-          type: string
-        metrics:
-          $ref: '#/components/schemas/CorpusMetrics'
-        id:
-          type: string
         licence:
           type: string
+        title:
+          type: string
+        description:
+          type: string
+        licenceUrl:
+          type: string
+          format: url
         repository:
           type: string
           format: url
-        description:
-          type: string
-    PrintSource:
+    TextMetrics:
       type: object
       properties:
-        placePublished:
-          type: string
-        title:
-          type: string
-        publisher:
-          type: string
-        yearPublished:
+        biodiversityIndex:
+          type: number
+        numOfWordTokens:
+          type: integer
+        numOfParagraphs:
+          type: integer
+        numOfEntityTypes:
+          type: integer
+        numOfChapters:
+          type: integer
+        numOfEntities:
           type: integer
     ExternalReferenceResourceId:
       type: object
@@ -257,85 +265,105 @@ components:
     Author:
       type: object
       properties:
-        name:
-          type: string
         gender:
           type: string
         refs:
           type: array
           items:
             $ref: '#/components/schemas/ExternalReferenceResourceId'
-    DigitalSource:
-      type: object
-      properties:
-        url:
-          type: string
-          format: url
-          nullable: true
         name:
           type: string
-          nullable: true
+    PrintSource:
+      type: object
+      properties:
+        yearPublished:
+          type: integer
+        placePublished:
+          type: string
+        title:
+          type: string
+        publisher:
+          type: string
     Dates:
       type: object
       properties:
-        yearWritten:
-          type: string
-          nullable: true
         yearNormalized:
           type: integer
+          nullable: true
+        yearWritten:
+          type: string
           nullable: true
         yearPrinted:
           type: string
           nullable: true
-    TextMetrics:
+    DigitalSource:
       type: object
       properties:
-        numOfWordTokens:
-          type: integer
-        numOfSegments:
-          type: integer
-        numOfEntities:
-          type: integer
-        numOfEntityTypes:
-          type: integer
-        numOfParagraphs:
-          type: integer
+        name:
+          type: string
+          nullable: true
+        url:
+          type: string
+          format: url
+          nullable: true
     Text:
       type: object
       properties:
-        printedSource:
-          $ref: '#/components/schemas/PrintSource'
+        metrics:
+          $ref: '#/components/schemas/TextMetrics'
+        refs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalReferenceResourceId'
         authors:
           type: array
           items:
             $ref: '#/components/schemas/Author'
+        corpusUrl:
+          type: string
+          format: url
+        id:
+          type: string
         entitiesUrl:
           type: string
           format: url
         title:
           type: string
-        digitalSource:
-          $ref: '#/components/schemas/DigitalSource'
+        printedSource:
+          $ref: '#/components/schemas/PrintSource'
         dates:
           $ref: '#/components/schemas/Dates'
+        digitalSource:
+          $ref: '#/components/schemas/DigitalSource'
+    Occurrence:
+      type: object
+      properties:
+        frequency:
+          type: integer
+        text:
+          type: string
         id:
           type: string
-        metrics:
-          $ref: '#/components/schemas/TextMetrics'
-        corpusUrl:
-          type: string
-          format: url
-        refs:
+    EntityMetrics:
+      type: object
+      properties:
+        occurrences:
           type: array
           items:
-            $ref: '#/components/schemas/ExternalReferenceResourceId'
+            $ref: '#/components/schemas/Occurrence'
+        scope:
+          type: string
+        overallFrequency:
+          type: integer
     Entity:
       type: object
       properties:
-        uri:
-          type: string
-          format: url
+        metrics:
+          $ref: '#/components/schemas/EntityMetrics'
         id:
           type: string
         name:
           type: string
+        uri:
+          type: string
+          format: url
