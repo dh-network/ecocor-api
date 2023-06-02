@@ -439,6 +439,30 @@ function api:corpus-texts($corpusname) {
 };
 
 (:~
+ : List corpus entities
+ :
+ : @param $corpusname
+ : @result JSON object
+ :)
+declare
+  %rest:GET
+  %rest:path("/ecocor/corpora/{$corpusname}/entities")
+  %rest:produces("application/json")
+  %output:media-type("application/json")
+  %output:method("json")
+function api:corpus-entities($corpusname) {
+  let $corpus := ectei:get-corpus-info-by-name($corpusname)
+  let $collection := concat($config:data-root, "/", $corpusname)
+  return
+    if (not($corpus?name) or not(xmldb:collection-available($collection))) then
+      <rest:response>
+        <http:response status="404"/>
+      </rest:response>
+    else
+      array {entities:corpus($corpusname)}
+};
+
+(:~
  : Get metadata for a single text
  :
  : @param $corpusname Corpus name

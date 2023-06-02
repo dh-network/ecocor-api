@@ -132,3 +132,20 @@ declare function entities:update() as xs:string* {
   let $url := $tei/base-uri()
   return (util:log-system-out($url), entities:update($url))
 };
+
+(:~
+ : List entities occurring in a corpus
+:)
+declare function entities:corpus($corpusname as xs:string) {
+  let $corpus := ectei:get-corpus-info-by-name($corpusname)
+  let $col := collection($config:entities-root || '/' || $corpusname)
+  let $ids := distinct-values($col//entities/entity/wikidata)
+  return array {
+    for $id in $ids return
+    map {
+      "id": $id,
+      "name": $col//entities/entity[wikidata=$id][1]/name[1]/text(),
+      "count": sum($col//entities/entity[wikidata=$id]/segments/segment/count)
+    }
+  }
+};
