@@ -82,7 +82,8 @@ function api:corpora() {
     order by $name
     return map:merge ((
       $info,
-      map:entry("uri", $config:api-base || '/corpora/' || $name)
+      map:entry("uri", $config:api-base || '/corpora/' || $name),
+      map:entry("metrics", metrics:corpus($name))
     ))
   }
 };
